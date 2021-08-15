@@ -26,6 +26,10 @@
         socket.on("login_yes", (username) => {
             console.log("Youve logged in with " + username);
         })
+
+        socket.on("name_yes", (username) => {
+            console.log("Your name has been changed to " + username);
+        })
     }
 
     function new_chat(message) {
@@ -43,20 +47,35 @@
         }
     }
 
+    function send(message) {
+        socket.emit("send", message);
+    }
+
+    function name_change() {
+        let password = localStorage.getItem('gspace_login');
+        let new_name = prompt("Enter your name");
+        socket.emit('name', new_name, password);
+    }
+
     /**
      * Client module init
      */
     function init() {
         socket = io({ upgrade: false, transports: ["websocket"] });
-        var send = document.getElementById("send");
-        send.addEventListener("click", function (e) {
-            socket.emit("send", socket.id, document.getElementById("msgbar").value);
+        document.getElementById("send").addEventListener("click", function (e) {
+            send(document.getElementById('msgbar').value);
             document.getElementById("msgbar").value = '';
         });
         var loginbutton = document.getElementById("login");
         loginbutton.addEventListener("click", function (e) {
             log_in();
+            loginbutton.setAttribute('disabled', 'disabled');
+            document.getElementById('name').removeAttribute('disabled');
         });
+
+        document.getElementById('name').addEventListener('click', function (e) {
+            name_change();
+        })
         bind();
     }
 

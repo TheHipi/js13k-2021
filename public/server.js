@@ -16,6 +16,7 @@ class User {
 	 */
 	constructor(socket) {
 		this.socket = socket;
+		this.author = 'Anonymous';
 	}
 	chat(message) {
 		this.socket.emit("chat", message);
@@ -23,6 +24,12 @@ class User {
 
 	login_yes(username) {
 		this.socket.emit('login_yes', username);
+		this.author = username;
+	}
+
+	name_yes(username) {
+		this.socket.emit('name_yes', username);
+		this.author = username;
 	}
 }
 
@@ -42,10 +49,10 @@ module.exports = {
 			user.chat(socket.id + " has disconnected.")
 		});
 
-		socket.on("send", (author, message) => {
-			console.log("[SEND] " + author + ":" + message);
-			for (const user of users) {
-				user.chat("<" + author + "> " + message);
+		socket.on("send", (message) => {
+			console.log("[SEND] " + user.author + ":" + message);
+			for (const member of users) {
+				member.chat("<" + user.author + "> " + message);
 			}
 		});
 
@@ -64,6 +71,15 @@ module.exports = {
 					user.login_yes(username);
 				}
 			})
+		})
+
+		socket.on('name', (new_name, password) => {
+			console.log('This is the desired name: ' + new_name);
+
+			if (new_name !== null) {
+				storage.set(password, new_name);
+				user.name_yes(new_name);
+			}
 		})
 
 		console.log("Connected: " + socket.id);
