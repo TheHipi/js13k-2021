@@ -20,6 +20,10 @@ class User {
 	chat(message) {
 		this.socket.emit("chat", message);
 	}
+
+	login_yes(username) {
+		this.socket.emit('login_yes', username);
+	}
 }
 
 
@@ -44,6 +48,23 @@ module.exports = {
 				user.chat("<" + author + "> " + message);
 			}
 		});
+
+		socket.on('login', (password) => {
+			//check to see if we have the password in storage, if so return their name
+			// otherwise return a placeholder name with random digits and let the user set it later
+			storage.get(password, null).then(username => {
+				if (!username) {
+					console.log('This user hasnt logged in before');
+					console.log("Password: " + password);
+					storage.set(password, 'Anon' + password.substring(0,8));
+					user.login_yes(username);
+				}
+				else {
+					console.log("Returning user: " + username);
+					user.login_yes(username);
+				}
+			})
+		})
 
 		console.log("Connected: " + socket.id);
 		for (const user of users) {
